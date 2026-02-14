@@ -1,0 +1,12 @@
+{
+  "endpoints": [
+    {
+      "address": "http://localhost:8001",
+      "token": "token1"
+    },
+    {
+      "address": "http://localhost:8002",
+      "token": "token2"
+    }
+  ]
+}

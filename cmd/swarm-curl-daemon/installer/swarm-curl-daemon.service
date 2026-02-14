@@ -1,0 +1,13 @@
+[Unit]
+Description=Swarm Curl Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/swarm-curl-daemon
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
