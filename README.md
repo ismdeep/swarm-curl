@@ -11,7 +11,7 @@ Distributed collaborative download tool
 
 Create a configuration file at `~/.swarm-curl/config.yaml`:
 
-```json
+```
 endpoints:
   - address: http://localhost:8001
     token: token1
