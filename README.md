@@ -9,37 +9,35 @@ Distributed collaborative download tool
 
 # 2 Configuration
 
-Create a configuration file at `~/.swarm-curl/config.json`:
+Create a configuration file at `~/.swarm-curl/config.yaml`:
 
 ```json
-{
-  "endpoints": [
-    {
-      "address": "http://host1:8001",
-      "token": "your-token-1"
-    },
-    {
-      "address": "http://host2:8002",
-      "token": "your-token-2"
-    }
-  ]
-}
+endpoints:
+  - address: http://localhost:8001
+    token: token1
+  - address: http://localhost:8002
+    token: token2
 ```
 
 # 3 Build
 
-```bash
-go build -o swarm-curl ./cmd/swarm-curl
-go build -o swarm-curl-daemon ./cmd/swarm-curl-daemon
+```
+make build
 ```
 
-# 4 Usage
+# 4 Install
+
+```
+make install
+```
+
+# 5 Usage
 
 Start the daemon:
 
 ```bash
-./swarm-curl-daemon :8001 token1
-./swarm-curl-daemon :8002 token2
+./swarm-curl-daemon --addr :8001 --token token1
+./swarm-curl-daemon --addr :8002 --token token2
 ```
 
 Download a file:
