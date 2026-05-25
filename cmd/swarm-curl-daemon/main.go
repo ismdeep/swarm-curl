@@ -1,23 +1,26 @@
 package main
 
 import (
-	"errors"
+	_ "embed"
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"runtime/debug"
-	"strings"
 
 	"github.com/spf13/cobra"
 
+	"github.com/ismdeep/swarm-curl/cmd/swarm-curl-daemon/config"
 	"github.com/ismdeep/swarm-curl/daemon"
 )
 
+//go:embed config.default.yaml
+var defaultConfig []byte
+
 func main() {
 	var (
-		addr  string
-		token string
+		addr       string
+		token      string
+		configFile string
 	)
 
 	rootCmd := &cobra.Command{
@@ -26,6 +29,8 @@ func main() {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log.Println("[INFO] swarm-curl-daemon")
+			log.Println("[INFO] GitHub: https://github.com/ismdeep/swarm-curl")
 			if info, ok := debug.ReadBuildInfo(); ok {
 				var commit, time string
 				for _, setting := range info.Settings {
@@ -35,78 +40,37 @@ func main() {
 						time = setting.Value
 					}
 				}
-				log.Printf("[INFO] BuildTime: %s, GitCommit: %s", time, commit)
+				log.Printf("[INFO] GitTime: %s, GitCommit: %s\n", time, commit)
 			}
 
-			addr = loadAddr(addr)
-			token = loadToken(token)
-			if token == "" {
-				return errors.New("token is not set")
+			// load config
+			cfg, err := config.Load(defaultConfig)
+			if err != nil {
+				return err
+			}
+			if configFile != "" {
+				cfg, err = config.LoadFromFile(configFile)
+				if err != nil {
+					return err
+				}
+			}
+			if addr != "" {
+				cfg.Addr = addr
+			}
+			if token != "" {
+				cfg.Token = token
 			}
 
-			server := daemon.NewServer(token)
-			log.Println("[INFO] Starting daemon on:", addr)
-			return server.Start(addr)
+			return daemon.NewServer(cfg.Token).Start(cfg.Addr)
 		},
 	}
 
 	rootCmd.PersistentFlags().StringVar(&addr, "addr", "", "Listen address")
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "Authentication token")
+	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Config file")
 
 	if err := rootCmd.Execute(); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "[ERROR] %v\n", err)
 		os.Exit(1)
 	}
-}
-
-func loadAddr(cmdAddr string) string {
-	if cmdAddr != "" {
-		return cmdAddr
-	}
-
-	if envAddr := os.Getenv("SWARM_CURL_ADDR"); envAddr != "" {
-		return envAddr
-	}
-
-	if addr := readTokenFile("/etc/swarm-curl-daemon/addr"); addr != "" {
-		return addr
-	}
-
-	if home, err := os.UserHomeDir(); err == nil {
-		if addr := readTokenFile(filepath.Join(home, ".swarm-curl-daemon", "addr")); addr != "" {
-			return addr
-		}
-	}
-
-	return "0.0.0.0:8080"
-}
-
-func loadToken(cmdToken string) string {
-	if cmdToken != "" {
-		return cmdToken
-	}
-
-	if envToken := os.Getenv("SWARM_CURL_TOKEN"); envToken != "" {
-		return envToken
-	}
-
-	if token := readTokenFile("/etc/swarm-curl-daemon/token"); token != "" {
-		return token
-	}
-
-	if home, err := os.UserHomeDir(); err == nil {
-		if token := readTokenFile(filepath.Join(home, ".swarm-curl-daemon", "token")); token != "" {
-			return token
-		}
-	}
-
-	return ""
-}
-
-func readTokenFile(path string) string {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return ""
-	}
-	return strings.TrimSpace(string(data))
 }

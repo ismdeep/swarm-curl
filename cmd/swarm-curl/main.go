@@ -15,7 +15,7 @@ import (
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 
-	"github.com/ismdeep/swarm-curl/config"
+	"github.com/ismdeep/swarm-curl/cmd/swarm-curl/config"
 )
 
 var (

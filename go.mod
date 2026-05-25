@@ -1,10 +1,11 @@
 module github.com/ismdeep/swarm-curl
 
-go 1.26.0
+go 1.26.3
 
 require (
 	github.com/schollz/progressbar/v3 v3.19.0
 	github.com/spf13/cobra v1.10.2
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
